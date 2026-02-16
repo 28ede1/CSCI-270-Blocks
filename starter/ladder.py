@@ -78,10 +78,17 @@ class WordLadderSearchSpace(SearchSpace):
             return []
         
         prev_word = state[-1]
-        possible_valid_next_word = []
+        alphabet = "abcdefghijklmnopqrstuvwxyz"
+        result = []
 
-
-        raise NotImplementedError("Implement me!")
+        for i in range(len(prev_word)):
+            for letter in alphabet:
+                if letter != prev_word[i]:
+                    new_word = prev_word[0:i] + letter + prev_word[i + 1:] 
+                    if new_word in self.valid_words:
+                        new_state = state + (new_word,)
+                        result.append(new_state)
+        return result
 
 
 def word_ladder_solution(initial_word, final_word):
