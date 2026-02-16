@@ -1,6 +1,18 @@
 from queue import LifoQueue, Queue
 from abc import ABC, abstractmethod
 
+"""
+get_start_state (depending on how state is defined)
+should return a tuple of strings
+
+is_goal_state should check "state" to know 
+whether or not it is the final state
+
+get_successprs should return a list of states (tuples of strings)
+that are successors of the provided state
+in the state machine.
+
+"""
 class SearchSpace(ABC):
 
     @abstractmethod
