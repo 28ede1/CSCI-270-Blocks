@@ -7,7 +7,16 @@ class BlockPuzzleSearchSpace(SearchSpace):
         super().__init__()
         self.intervals = intervals
         self.cube_width = cube_width
-        self.start_state = ('E', )
+        self.start_state = ('E',)
+
+        # list represents the positions where you must make a 90 degree turn (hinges)
+        self.hinges = []
+        distance = 0
+
+        for interval in self.intervals:
+            distance += interval
+            self.hinges.append(distance)
+
 
     def get_start_state(self):
         """Returns the start state.
@@ -128,21 +137,37 @@ class BlockPuzzleSearchSpace(SearchSpace):
             The list of valid successor states.
         """
         
-        # if not state:
-        #     return []
+        if not state:
+            return []
         
-        # prev_direction = state[-1]
-        # possible_directions = ['E', 'S', 'W', 'N', 'U', 'D']
-        # result = []
+        path_progress = len(state)
+        prev_direction = state[-1]
 
-        # for i in range(possible_directions):
-        #     if possible_directions[i] != prev_direction:
-        # #         new_direction = possible_directions[i] 
+        # If you have reached the length of the segment, there is no successor left
+        if path_progress >= sum(self.intervals):
+            return []
+        
+        # Find where you are in the puzzle. If you are not at a hinge, you must continue going in the prev direction
+        if path_progress not in self.hinges:
+            return state + (prev_direction,)
 
-                    
-        # #                 new_state = state + (new_word,)
-        # #                 result.append(new_state)
-        # # return result
+        possible_directions = ['E', 'N', 'S', 'W', 'U', 'D']
+        invalid_directions = {
+            'E': ['E', 'W'], 
+            'W': ['E', 'W'],
+            'S': ['S', 'N'],
+            'N': ['S', 'N'],
+            'U': ['U', 'D'],
+            'D': ['U', 'D']
+        }
+        
+        result = []
+
+        for i in range(len(possible_directions)):
+            if possible_directions[i] not in invalid_directions[prev_direction]:   
+                new_state = state + (possible_directions[i],)
+                result.append(new_state)
+        return result
 
 
 def construct_search_space_for_2x2x2_puzzle():
