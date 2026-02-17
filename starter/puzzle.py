@@ -7,7 +7,7 @@ class BlockPuzzleSearchSpace(SearchSpace):
         super().__init__()
         self.intervals = intervals
         self.cube_width = cube_width
-        raise NotImplementedError("Add more to me, as needed!")
+        self.start_state = ('E', )
 
     def get_start_state(self):
         """Returns the start state.
@@ -20,7 +20,7 @@ class BlockPuzzleSearchSpace(SearchSpace):
         tuple[str]
             The start state
         """
-        raise NotImplementedError("Implement me!")
+        return self.start_state
 
     def is_final_state(self, state):
         """Checks whether a given state is a final state.
@@ -38,7 +38,39 @@ class BlockPuzzleSearchSpace(SearchSpace):
         bool
             True iff the state is a final state
         """
-        raise NotImplementedError("Implement me!")
+        # Map direction xyz change based on 'E, W, N, S, or U' directions
+        position_add_dictionary = {
+            'E': (1, 0, 0), 
+            'W': (-1, 0 , 0),
+            'N': (0, 1, 0),
+            'S': (0, -1, 0),
+            'U': (0, 0, 1)
+        }
+
+        # origin
+        curr_pos = (0, 0, 0)
+
+        # To ensure that the same block position in the xyz plane is not visited twice
+        position_tracker = [curr_pos]
+
+        # To find the next path coordinate position representation
+        for i in range(len(state)):
+            curr_pos = tuple(a + b for a, b in zip(curr_pos, position_add_dictionary[state[i]]))
+
+            # You can not be a final state if you have visited the same position twice
+            if curr_pos in position_tracker:
+                return False
+            else:
+                position_tracker.append(curr_pos)
+
+        # To ensure that the search path completes a nxnxn cube  
+        # ONLY CHECKS FOR A CUBE located in the 1st quadrant
+        for x in range(self.cube_width):
+            for y in range(self.cube_width):
+                for z in range(self.cube_width):
+                    if (x, y, z) not in position_tracker:
+                        return False
+        return True
 
     def get_successors(self, state):
         """Determines the possible successors of a state.
