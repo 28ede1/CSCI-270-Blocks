@@ -15,6 +15,10 @@ class BlockPuzzleSearchSpace(SearchSpace):
         for i in range(1, len(self.intervals)):
             self.hinges.append(self.hinges[-1] + self.intervals[i])
 
+        # keeps track of dimensions of constructed figure so far
+        self.figure_x_width = 0
+        self.figure_y_width = 0
+        self.figure_z_width = 0
 
     def get_start_state(self):
         """Returns the start state.
@@ -110,6 +114,42 @@ class BlockPuzzleSearchSpace(SearchSpace):
                         return False
         return True
 
+    def does_not_exceed_cube_dimensions(self, state, direction, cube_width):
+        
+        # After translating directions into coordinate lists, find widths
+
+        current_state = state  + (direction,)
+        position_add_dictionary = {
+            'E': (1, 0, 0), 
+            'W': (-1, 0 , 0),
+            'N': (0, 1, 0),
+            'S': (0, -1, 0),
+            'U': (0, 0, 1),
+            'D': (0, 0, -1)
+        }
+
+        curr_pos = (0, 0, 0)
+        position_tracker = [curr_pos]
+
+        for direction in current_state:
+            move = position_add_dictionary[direction]
+            curr_pos = ( curr_pos[0] + move[0], curr_pos[1] + move[1], curr_pos[2] + move[2])
+            position_tracker.append(curr_pos)
+
+        x_positions = []
+        y_positions = []
+        z_positions = []
+        for (x, y, z) in position_tracker:
+            x_positions.append(x)
+            y_positions.append(y)
+            z_positions.append(z)
+        
+        width_x = max(x_positions) - min(x_positions) + 1
+        width_y = max(y_positions) - min(y_positions) + 1
+        width_z = max(z_positions) - min(z_positions) + 1
+
+        return (width_x <= cube_width and width_y <= cube_width and width_z <= cube_width)
+
     def get_successors(self, state):
         """Determines the possible successors of a state.
 
@@ -160,9 +200,10 @@ class BlockPuzzleSearchSpace(SearchSpace):
         result = []
 
         for i in range(len(possible_directions)):
-            if possible_directions[i] not in invalid_directions[prev_direction]:   
-                new_state = state + (possible_directions[i],)
-                result.append(new_state)
+            if possible_directions[i] not in invalid_directions[prev_direction]: 
+                if self.does_not_exceed_cube_dimensions(state, possible_directions[i], self.cube_width):
+                    new_state = state + (possible_directions[i],)
+                    result.append(new_state)
         return result
 
 
@@ -194,7 +235,11 @@ def solution_b():
     consistent with the shape of the puzzle and should visit each subcube
     of a 3x3 cube exactly once.
     """
-    raise NotImplementedError("Implement me!")
+
+    space = BlockPuzzleSearchSpace(
+        intervals=(2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 1, 2, 1, 2, 1, 2), cube_width=3
+    )
+    return bfs(space)
 
 
 def solution_c():
@@ -205,4 +250,7 @@ def solution_c():
     consistent with the shape of the puzzle and should visit each subcube
     of a 3x3 cube exactly once.
     """
-    raise NotImplementedError("Implement me!")
+    space = BlockPuzzleSearchSpace(
+        intervals=(1,1,1,2,2,1,2,2,1,1,1,1,2,2,1,2,1,2), cube_width=3
+    )
+    return bfs(space)
