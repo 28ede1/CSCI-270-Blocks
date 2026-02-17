@@ -73,22 +73,39 @@ class WordLadderSearchSpace(SearchSpace):
         loop through sucesssors and to a returned list, 
         add new state.
         """
+        # Map direction xyz change based on 'E, W, N, S, or U' directions
+        position_add_dictionary = {
+            'E': (1, 0, 0), 
+            'W': (-1, 0 , 0),
+            'N': (0, 1, 0),
+            'S': (0, -1, 0),
+            'U': (0, 0, 1)
+        }
 
-        if not state:
-            return []
-        
-        prev_word = state[-1]
-        alphabet = "abcdefghijklmnopqrstuvwxyz"
-        result = []
+        # origin
+        curr_pos = (0, 0, 0)
 
-        for i in range(len(prev_word)):
-            for letter in alphabet:
-                if letter != prev_word[i]:
-                    new_word = prev_word[0:i] + letter + prev_word[i + 1:] 
-                    if new_word in self.valid_words:
-                        new_state = state + (new_word,)
-                        result.append(new_state)
-        return result
+        # To ensure that the same block position in the xyz plane is not visited twice
+        position_tracker = [curr_pos]
+
+        # To find the next path coordinate position representation
+        for i in range(len(state)):
+            curr_pos = tuple(a + b for a, b in zip(curr_pos, position_add_dictionary[state[i]]))
+
+            # You can not be a final state if you have visited the same position twice
+            if curr_pos in position_tracker:
+                return False
+            else:
+                position_tracker.append(curr_pos)
+
+        # To ensure that the search path completes a nxnxn cube  
+        # ONLY CHECKS FOR A CUBE located in the 1st quadrant MUST FIX
+        for x in range(self.cube_width):
+            for y in range(self.cube_width):
+                for z in range(self.cube_width):
+                    if (x, y, z) not in position_tracker:
+                        return False
+        return True
 
 
 def word_ladder_solution(initial_word, final_word):
