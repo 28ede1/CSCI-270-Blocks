@@ -9,13 +9,11 @@ class BlockPuzzleSearchSpace(SearchSpace):
         self.cube_width = cube_width
         self.start_state = ('E',)
 
-        # list represents the positions where you must make a 90 degree turn (hinges)
-        self.hinges = []
-        distance = 0
+        # self.hinges stores the positions of the puzzle where you must make a 90 degree turn
+        self.hinges = [self.intervals[0]]
 
-        for interval in self.intervals:
-            distance += interval
-            self.hinges.append(distance)
+        for i in range(1, len(self.intervals)):
+            self.hinges.append(self.hinges[-1] + self.intervals[i])
 
 
     def get_start_state(self):
@@ -51,9 +49,9 @@ class BlockPuzzleSearchSpace(SearchSpace):
         
         for position in position_tracker:
             converted_position = list(position)
-            converted_position[0] -= abs(min_x)
-            converted_position[1] -= abs(min_y)
-            converted_position[2] -= abs(min_z)
+            converted_position[0] += abs(min_x)
+            converted_position[1] += abs(min_y)
+            converted_position[2] += abs(min_z)
             translated.append(tuple(converted_position))
         
         return translated
@@ -90,12 +88,10 @@ class BlockPuzzleSearchSpace(SearchSpace):
         # To ensure that the same block position in the xyz plane is not visited twice
         position_tracker = [curr_pos]
 
-        # To find the next path coordinate position representation
         for direction in state:
             move = position_add_dictionary[direction]
             curr_pos = ( curr_pos[0] + move[0], curr_pos[1] + move[1], curr_pos[2] + move[2])
             
-            # You can not be a final state if you have visited the same position twice
             if curr_pos in position_tracker:
                 return False
             else:
@@ -149,7 +145,7 @@ class BlockPuzzleSearchSpace(SearchSpace):
         
         # Find where you are in the puzzle. If you are not at a hinge, you must continue going in the prev direction
         if path_progress not in self.hinges:
-            return state + (prev_direction,)
+            return [state + (prev_direction,)]
 
         possible_directions = ['E', 'N', 'S', 'W', 'U', 'D']
         invalid_directions = {

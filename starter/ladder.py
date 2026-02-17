@@ -60,20 +60,6 @@ class WordLadderSearchSpace(SearchSpace):
             The list of valid successor states.
         """
 
-        """
-        get the ricd tmost word in the 'state' tuple list (if found)
-        if not found immediately return 'state'
-
-        initialize a list to store successors
-
-        update list of sucessors VALID
-           to do this, loop through len of rightmost word, and loop through "a....z" (that is not the currently letter)
-           check to see if that word is in self.valid words
-
-        loop through sucesssors and to a returned list, 
-        add new state.
-        """
-
         if not state:
             return []
         
@@ -111,4 +97,16 @@ def word_ladder_solution(initial_word, final_word):
 
 
 if __name__ == '__main__':
+    space = WordLadderSearchSpace("train", "prawn")
+    print("space.get_successors(('train',)) output")
+    print(space.get_successors(("train",)))
+    print(" ")
+    print(" ")
+
+    print("space.get_successors(('train', 'brain')) output")
+    print(space.get_successors(('train', 'brain')))
+    print(" ")
+    print(" ")
+    
+    print("word_ladder_solution(('train', 'prawn')) output")
     print(word_ladder_solution("train", "prawn"))
