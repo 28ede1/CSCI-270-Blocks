@@ -22,6 +22,33 @@ class BlockPuzzleSearchSpace(SearchSpace):
         """
         return self.start_state
 
+    def translate_to_origin(self, position_tracker):
+        # to translate the path to be in the quadrant where x, y, z >= 0
+        min_x = float('inf')
+        min_y = float('inf')
+        min_z = float('inf')
+
+        for position in position_tracker:
+            if position[0] < min_x:
+                min_x = position[0]
+
+            if position[1] < min_y:
+                min_y = position[1]
+            
+            if position[2] < min_z:
+                min_z = position[2]
+
+        translated = []
+        
+        for position in position_tracker:
+            converted_position = list(position)
+            converted_position[0] -= abs(min_x)
+            converted_position[1] -= abs(min_y)
+            converted_position[2] -= abs(min_z)
+            translated.append(tuple(converted_position))
+        
+        return translated
+
     def is_final_state(self, state):
         """Checks whether a given state is a final state.
 
@@ -38,13 +65,14 @@ class BlockPuzzleSearchSpace(SearchSpace):
         bool
             True iff the state is a final state
         """
-        # Map direction xyz change based on 'E, W, N, S, or U' directions
+        # Map direction xyz change based on 'E, W, N, S, D or U' directions
         position_add_dictionary = {
             'E': (1, 0, 0), 
             'W': (-1, 0 , 0),
             'N': (0, 1, 0),
             'S': (0, -1, 0),
-            'U': (0, 0, 1)
+            'U': (0, 0, 1),
+            'D': (0, 0, -1)
         }
 
         # origin
@@ -54,17 +82,22 @@ class BlockPuzzleSearchSpace(SearchSpace):
         position_tracker = [curr_pos]
 
         # To find the next path coordinate position representation
-        for i in range(len(state)):
-            curr_pos = tuple(a + b for a, b in zip(curr_pos, position_add_dictionary[state[i]]))
-
+        for direction in state:
+            move = position_add_dictionary[direction]
+            curr_pos = ( curr_pos[0] + move[0], curr_pos[1] + move[1], curr_pos[2] + move[2])
+            
             # You can not be a final state if you have visited the same position twice
             if curr_pos in position_tracker:
                 return False
             else:
                 position_tracker.append(curr_pos)
 
-        # To ensure that the search path completes a nxnxn cube  
-        # ONLY CHECKS FOR A CUBE located in the 1st quadrant
+        # To account for whether or not valid cube is not in the expected quadrant, 
+        # shift path to the quadrant where x >= 0, y >= 0, z >= 0
+        
+        position_tracker = self.translate_to_origin(position_tracker)
+
+        # To ensure that the search path completes a nxnxn cube
         for x in range(self.cube_width):
             for y in range(self.cube_width):
                 for z in range(self.cube_width):
@@ -94,7 +127,22 @@ class BlockPuzzleSearchSpace(SearchSpace):
         list[tuple[str]]
             The list of valid successor states.
         """
-        raise NotImplementedError("Implement me!")
+        
+        # if not state:
+        #     return []
+        
+        # prev_direction = state[-1]
+        # possible_directions = ['E', 'S', 'W', 'N', 'U', 'D']
+        # result = []
+
+        # for i in range(possible_directions):
+        #     if possible_directions[i] != prev_direction:
+        # #         new_direction = possible_directions[i] 
+
+                    
+        # #                 new_state = state + (new_word,)
+        # #                 result.append(new_state)
+        # # return result
 
 
 def construct_search_space_for_2x2x2_puzzle():
